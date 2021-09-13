@@ -2,7 +2,7 @@
 
 ###### Attribution required : Fabien Furfaro (CC 4.0 BY NC ND SA)
 
-![ProofOfConcept](/GDesign.png)
+![ProofOfConcept](/scale_model.png)
 
 ### Game Engine :
 
