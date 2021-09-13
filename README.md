@@ -8,7 +8,7 @@
 
 Godot Engine - Free and open source 2D and 3D game engine https://godotengine.org.
 
-Some design inspired by GDQuest
+Some design inspired by GDQuest !
 
 ### Ideas of game :
 
