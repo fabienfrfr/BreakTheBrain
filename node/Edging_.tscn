@@ -6,33 +6,35 @@
 [sub_resource type="CanvasItemMaterial" id=1]
 blend_mode = 1
 
-[sub_resource type="Curve2D" id=3]
+[sub_resource type="Curve2D" id=2]
 _data = {
 "points": PoolVector2Array( 0, 0, 0, 0, 104, 296, 0, 0, 0, 0, 400, 104 )
 }
 
-[sub_resource type="ParticlesMaterial" id=4]
+[sub_resource type="ParticlesMaterial" id=3]
 flag_disable_z = true
-initial_velocity = 10.0
 orbit_velocity = 0.0
 orbit_velocity_random = 0.0
 scale = 0.5
 
-[node name="Edging_" type="Node"]
+[node name="Edging_" type="Node" groups=[
+"EgdesTree",
+]]
 script = ExtResource( 1 )
 
 [node name="Line" type="Line2D" parent="."]
 material = SubResource( 1 )
-points = PoolVector2Array( 100, 300, 400, 100 )
+points = PoolVector2Array( 104, 296, 400, 104 )
 
 [node name="WeightPath" type="Path2D" parent="Line"]
-curve = SubResource( 3 )
+curve = SubResource( 2 )
 
 [node name="WeighLvlFollow" type="PathFollow2D" parent="Line/WeightPath"]
-position = Vector2( 251.912, 200.057 )
-rotation = -0.575426
-offset = 176.335
+position = Vector2( 201.623, 232.677 )
+rotation = -0.575415
+offset = 116.381
 
 [node name="Particles2D" type="Particles2D" parent="Line/WeightPath/WeighLvlFollow"]
-process_material = SubResource( 4 )
+amount = 5
+process_material = SubResource( 3 )
 texture = ExtResource( 2 )

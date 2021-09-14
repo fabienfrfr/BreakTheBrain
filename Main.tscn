@@ -13,10 +13,10 @@ _data = {
 "points": PoolVector2Array( 0, 0, 0, 0, 520, 400, 0, 0, 0, 0, 280, 400 )
 }
 
-[sub_resource type="CanvasItemMaterial" id=3]
+[sub_resource type="CanvasItemMaterial" id=2]
 blend_mode = 1
 
-[sub_resource type="Environment" id=4]
+[sub_resource type="Environment" id=3]
 background_mode = 4
 ambient_light_energy = 0.0
 glow_enabled = true
@@ -46,12 +46,14 @@ position = Vector2( 520, 400 )
 rotation = 3.14159
 
 [node name="TargetY" type="Line2D" parent="."]
+position = Vector2( 0, 22 )
 points = PoolVector2Array( 40, 560, 60, 560, 80, 560, 100, 560, 120, 560, 140, 560, 160, 560, 180, 560, 200, 560, 220, 560, 240, 560, 260, 560, 280, 560, 300, 560, 320, 500, 340, 500, 360, 500, 380, 500, 400, 500, 420, 500, 440, 500, 460, 500, 480, 500, 500, 560, 520, 560, 540, 560, 560, 560, 580, 560, 600, 560, 620, 560, 640, 560, 660, 560, 680, 560, 700, 560, 720, 560, 740, 560, 760, 560 )
 width = 7.0
 default_color = Color( 0.980392, 1, 0.4, 1 )
 
 [node name="PredictedY" type="Line2D" parent="."]
-material = SubResource( 3 )
+material = SubResource( 2 )
+position = Vector2( 0, 22 )
 points = PoolVector2Array( 40, 560, 60, 560, 80, 560, 100, 560, 120, 560, 140, 560, 160, 560, 180, 560, 200, 560, 220, 560, 240, 560, 260, 560, 280, 560, 300, 560, 320, 560, 340, 560, 360, 560, 380, 560, 400, 500, 420, 500, 440, 500, 460, 500, 480, 500, 500, 500, 520, 500, 540, 500, 560, 500, 580, 500, 600, 500, 620, 500, 640, 500, 660, 500, 680, 500, 700, 500, 720, 500, 740, 500, 760, 500 )
 width = 5.0
 default_color = Color( 1, 0.4, 0.4, 1 )
@@ -59,4 +61,6 @@ default_color = Color( 1, 0.4, 0.4, 1 )
 [node name="HUD" parent="." instance=ExtResource( 7 )]
 
 [node name="Glow" type="WorldEnvironment" parent="."]
-environment = SubResource( 4 )
+environment = SubResource( 3 )
+
+[connection signal="reset_link" from="HUD" to="." method="_reset_lvl"]
