@@ -31,7 +31,7 @@ curve = SubResource( 2 )
 
 [node name="WeighLvlFollow" type="PathFollow2D" parent="Line/WeightPath"]
 position = Vector2( 201.623, 232.677 )
-rotation = -0.575415
+rotation = -0.575413
 offset = 116.381
 
 [node name="Particles2D" type="Particles2D" parent="Line/WeightPath/WeighLvlFollow"]

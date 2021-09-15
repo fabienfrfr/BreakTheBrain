@@ -1,7 +1,5 @@
 extends RigidBody2D
 
-signal detach
-
 var screen_size
 var position_mouse
 var d_ 
@@ -21,7 +19,6 @@ func _ready():
 	screen_size = get_viewport_rect().size
 	init_pos_in = $IN.get_point_position(1)
 	init_pos_out = $OUT.get_point_position(1)
-	print(init_pos_in)
 
 func _process(_delta):
 	position_mouse = get_viewport().get_mouse_position()

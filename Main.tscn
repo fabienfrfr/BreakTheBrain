@@ -63,4 +63,9 @@ default_color = Color( 1, 0.4, 0.4, 1 )
 [node name="Glow" type="WorldEnvironment" parent="."]
 environment = SubResource( 3 )
 
+[node name="CurveUpdate" type="Timer" parent="."]
+wait_time = 0.5
+autostart = true
+
 [connection signal="reset_link" from="HUD" to="." method="_reset_lvl"]
+[connection signal="timeout" from="CurveUpdate" to="." method="_CurveUpdate"]
