@@ -64,7 +64,7 @@ default_color = Color( 1, 0.4, 0.4, 1 )
 environment = SubResource( 3 )
 
 [node name="CurveUpdate" type="Timer" parent="."]
-wait_time = 0.5
+wait_time = 0.1
 autostart = true
 
 [connection signal="reset_link" from="HUD" to="." method="_reset_lvl"]
