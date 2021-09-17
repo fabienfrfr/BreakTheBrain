@@ -1,15 +1,10 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://node/Edging_.gd" type="Script" id=1]
 [ext_resource path="res://asset/glowing_circle.png" type="Texture" id=2]
 
 [sub_resource type="CanvasItemMaterial" id=1]
 blend_mode = 1
-
-[sub_resource type="Curve2D" id=2]
-_data = {
-"points": PoolVector2Array( 0, 0, 0, 0, 104, 296, 0, 0, 0, 0, 400, 104 )
-}
 
 [sub_resource type="ParticlesMaterial" id=3]
 flag_disable_z = true
@@ -24,17 +19,13 @@ script = ExtResource( 1 )
 
 [node name="Line" type="Line2D" parent="."]
 material = SubResource( 1 )
-points = PoolVector2Array( 104, 296, 400, 104 )
+points = PoolVector2Array( 0, 0, 400, 0 )
+__meta__ = {
+"_edit_group_": true
+}
 
-[node name="WeightPath" type="Path2D" parent="Line"]
-curve = SubResource( 2 )
-
-[node name="WeighLvlFollow" type="PathFollow2D" parent="Line/WeightPath"]
-position = Vector2( 201.623, 232.677 )
-rotation = -0.575413
-offset = 116.381
-
-[node name="Particles2D" type="Particles2D" parent="Line/WeightPath/WeighLvlFollow"]
+[node name="Cursor" type="Particles2D" parent="Line"]
+position = Vector2( 400, 0 )
 amount = 5
 process_material = SubResource( 3 )
 texture = ExtResource( 2 )

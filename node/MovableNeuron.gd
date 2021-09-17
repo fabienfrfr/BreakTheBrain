@@ -15,7 +15,7 @@ var cm2pix = 3.7795275591
 var init_pos_in = Vector2.ZERO
 var init_pos_out = Vector2.ZERO
 
-var Biases
+var Biases # get by the GraphGen (to improve)
 var Weight_in
 var Weight_out
 
@@ -24,7 +24,7 @@ func _ready():
 	init_pos_in = $IN.get_point_position(1)
 	init_pos_out = $OUT.get_point_position(1)
 	Biases = 1.0
-	Weight_in = -1.0
+	Weight_in = 1.0
 	Weight_out = 1.0
 
 func _process(_delta):
