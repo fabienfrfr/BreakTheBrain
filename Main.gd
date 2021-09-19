@@ -6,7 +6,11 @@ export (PackedScene) var FixedNeuron
 export (PackedScene) var InputX
 export (PackedScene) var MovableNeuron
 
-const nb_mv_neuron = 1
+const nb_i = 1
+const nb_out = 1
+const nb_fix = 3
+const nb_mov = 3
+
 var movable_vertices = []
 var vertices = []
 
@@ -15,18 +19,20 @@ var target_values = Array([])
 var predicted_values = Array([])
 const delta_x_val = 8.0
 var points_count
-var min_x
-var max_x
-var min_y
-var max_y
+var min_x = 40
+var max_x = 720
+var min_y = 560
+var max_y = 500
+
+var score: int
 
 var nn
 
 func _ready():
 	randomize()
 	nn =  NeuralNet.new()
-	$GraphGen.init_constructor(1,1,1,1)
-	for _i in range(0,nb_mv_neuron):
+	$GraphGen.init_constructor(nb_i, nb_out, nb_fix, nb_mov)
+	for _i in range(0,nb_mov):
 		movable_vertices += [MovableNeuron.instance()]
 		add_child(movable_vertices[-1])
 		$MovePath/NeuronSpawnLoc.offset = randi()
@@ -47,15 +53,16 @@ func _ready():
 	curve_init()
 
 func _reset_lvl():
-	movable_vertices[-1].get_node("IN").points[1] = movable_vertices[-1].init_pos_in
-	movable_vertices[-1].get_node("OUT").points[1] = movable_vertices[-1].init_pos_out
+	score = 1 - 1 # next difficulty
+	for m in movable_vertices :
+		m.get_node("IN").points[1] = m.init_pos_in
+		m.get_node("OUT").points[1] = m.init_pos_out
+	# forcing update matrix (why doesn't works always?)
+	$GraphGen.adj_matrix = $GraphGen.adj_matrix_copy.duplicate(true)
+	#_ready()
 
 func curve_init():
 	points_count = $TargetY.get_point_count()
-	min_x = $TargetY.get_point_position(0).x
-	max_x = $TargetY.get_point_position(points_count-1).x
-	min_y = $PredictedY.get_point_position(0).y
-	max_y = $PredictedY.get_point_position(points_count-1).y
 	## to improve : curve solution
 	for t in $TargetY.points :
 		target_values += [(t.y-min_y)/(max_y-min_y)]
@@ -69,6 +76,7 @@ func _CurveUpdate():
 	_check_connection()
 	# compute graph prediction and error
 	predicted_values = nn.graph2computation(x_input_values, $GraphGen.adj_matrix)
+	predicted_values = nn.normalization(predicted_values)
 	var error = 0
 	for n in range(points_count) :
 		error += abs(target_values[n] - predicted_values[n])
@@ -81,16 +89,25 @@ func _CurveUpdate():
 	print($GraphGen.adj_matrix)
 	
 func _check_connection():
-	var dist_in_list = []
-	var dist_out_list = []
-	var idx_in
-	var idx_out
-	for pn in $GraphGen.pos_node :
-		dist_in_list += [(pn-movable_vertices[-1].absolut_position_in).length()]
-		dist_out_list += [(pn-movable_vertices[-1].absolut_position_out).length()]
-	idx_in = dist_in_list.find(dist_in_list.min())
-	idx_out = dist_out_list.find(dist_out_list.min())
-	if dist_in_list.min() < 25 :
-		$GraphGen.adj_matrix[-2][idx_in] = movable_vertices[-1].Weight_in
-	if dist_out_list.min() < 25 :
-		$GraphGen.adj_matrix[idx_out][-2] = movable_vertices[-1].Weight_out
+	for m in movable_vertices :
+		var dist_in_list = []
+		var dist_out_list = []
+		var idx_in
+		var idx_out
+		var pn
+		for i in range($GraphGen.v_size) :
+			pn = $GraphGen.pos_node[i]
+			if $GraphGen.type_n[i] != "movable" :
+				dist_in_list += [(pn-m.absolut_position_in).length()]
+				dist_out_list += [(pn-m.absolut_position_out).length()]
+			else :
+				dist_in_list += [1000]
+				dist_out_list += [1000]
+		idx_in = dist_in_list.find(dist_in_list.min())
+		idx_out = dist_out_list.find(dist_out_list.min())
+		if dist_in_list.min() < 25 :
+			$GraphGen.adj_matrix[-2][idx_in] = m.Weight_in
+			m.connected_in = true
+		if dist_out_list.min() < 25 :
+			$GraphGen.adj_matrix[idx_out][-2] = m.Weight_out
+			m.connected_out = true

@@ -4,39 +4,102 @@ export var line_width = 5
 
 export (PackedScene) var Edges
 
-### to improve : generate node position and is param
-var pos_node = [Vector2(100,300),Vector2(400,100),Vector2.ZERO,Vector2(700,300)]
+### define static type (faster)
+var v_size
+var pos_node
 #input, fixed, movable, output (init)
-var type_n = ['input','fixed','movable','output']
-var adj_list = [[],[0],[],[1]]
-var weight = [[],[-1],[],[1]]
-var biases = [1,1,1,-1]
+var type_n
+var adj_list
+var weight
+var biases
 
 var posA = Vector2.ZERO
 var posB = Vector2.ZERO
 
-var edges_list = []
-var adj_matrix = []
+var edges_list
+var adj_matrix
 
 var adj_matrix_copy
 var offset
 
+var x_in = 100
+var x_out = 700
+var y_sep = 300
+var y_up = 50
+
+func node_generator(nb_i, nb_out, nb_fix, nb_mov):
+	var position = []
+	var type_node = []
+	var adj_list_ = []
+	var weight_ = []
+	var biaise_ = []
+	var dy_i = 200/(nb_i+1)
+	var dy_o = 200/(nb_out+1)
+	var dist
+	for i in range(nb_i):
+		position += [Vector2(x_in,y_sep-100+(i+1)*dy_i)]
+		type_node += ['input']
+		adj_list_ += [[]]
+		weight_ += [[]]
+		biaise_ += [1]
+	for _i in range(nb_fix):
+		position += [Vector2(x_in+50+randi()%500,y_up+randi()%(y_sep-3*y_up))]
+		type_node += ['fixed']
+		dist = []
+		for p in position :
+			dist += [(position[-1]-p).length()]
+		dist[-1] = 10000
+		adj_list_ += [[dist.find(dist.min())]]
+		weight_ += [[-1]]
+		biaise_ += [1]
+	for _i in range(nb_mov):
+		position += [Vector2.ZERO]
+		type_node += ['movable']
+		adj_list_ += [[]]
+		weight_ += [[]]
+		biaise_ += [1]
+	for i in range(nb_out):
+		position += [Vector2(x_out,y_sep-100+(i+1)*dy_o)]
+		type_node += ['output']
+		dist = []
+		for p in position :
+			# forward propagation only (need to verify)
+			if (position[-1]-p).x > 0 : 
+				dist += [(position[-1]-p).length()]
+			else :
+				dist += [100000]
+		adj_list_ += [[dist.find(dist.min())]]
+		weight_ += [[1]]
+		biaise_ += [-1]
+	return [position, type_node, adj_list_, weight_, biaise_]
+
 func init_constructor(nb_i, nb_out, nb_fix, nb_mov):
-	var v = nb_i + nb_out + nb_fix + nb_mov
+	v_size = nb_i + nb_out + nb_fix + nb_mov
+	# generate position and param (to improve)
+	var param = node_generator(nb_i, nb_out, nb_fix, nb_mov)
+	pos_node = param[0]
+	type_n = param[1]
+	adj_list = param[2]
+	weight = param[3]
+	biases = param[4]
+	# construct matrix
+	adj_matrix = []
 	var line = []
 	# empty matrix
-	for _i in range(v):
-		for _j in range(v):
+	for _i in range(v_size):
+		for _j in range(v_size):
 			line += [0]
 		adj_matrix += [line]
 		line = []
 	# update matrix
-	for i in range(v):
+	for i in range(v_size):
 		# add biases
 		adj_matrix[i][i] = biases[i]
 		# add weight
 		for l in adj_list[i]:
 			adj_matrix[i][l] = weight[i][0]
+	# edges construction
+	edges_list = Array([])
 	for i in range(1, adj_list.size()):
 		var edge = [0]
 		for l in adj_list[i] :
@@ -49,6 +112,7 @@ func init_constructor(nb_i, nb_out, nb_fix, nb_mov):
 			# add edges
 			edge[-1].add_link(posA,posB)
 		edges_list += edge
+	print(adj_matrix)
 
 func update():
 	# to improve : generalize 

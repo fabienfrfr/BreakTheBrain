@@ -12,14 +12,14 @@ animations = [ {
 } ]
 
 [sub_resource type="CircleShape2D" id=2]
-radius = 43.8553
+radius = 26.1429
 
 [node name="FixedNeuron" type="RigidBody2D"]
 gravity_scale = 0.0
 script = ExtResource( 1 )
 
 [node name="AnimatedSprite" type="AnimatedSprite" parent="."]
-scale = Vector2( 0.25, 0.25 )
+scale = Vector2( 0.15, 0.15 )
 frames = SubResource( 1 )
 animation = "neuron"
 

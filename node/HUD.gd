@@ -10,9 +10,6 @@ func _on_ResetButton_pressed():
 
 func _on_MessageTimer_timeout():
 	yield($MessageTimer, "timeout")
-	$Message.text = "Get Ready ?"
-	$Message.show()
-	yield($MessageTimer, "timeout")
 	$Message.text = "Go !"
 	$Message.show()
 	yield($MessageTimer, "timeout")

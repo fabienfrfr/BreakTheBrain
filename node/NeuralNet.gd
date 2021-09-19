@@ -20,10 +20,19 @@ func dot_vm(vect,mat):
 		l += [c]
 	return l
 
-func heaviside(x_list):
+func Heaviside(x_list):
 	var x_new = []
 	for x in x_list :
 		x_new += [int(x>0)]
+	return x_new
+
+func ReLU(x_list):
+	var x_new = []
+	for x in x_list :
+		if x > 0 :
+			x_new += [x]
+		else :
+			x_new += [0]
 	return x_new
 
 # algorithm
@@ -51,7 +60,7 @@ func graph2computation(input_x,adj_matrice):
 	var calc_idx
 	var rslt_v
 	var wproduct
-	for _i in range(adj_matrice.size()):
+	for i in range(adj_matrice.size()):
 		# find next line to calculate (to calc if 1, 0 if calculated, uncalculable now otherwise)
 		rslt_v = dot_mv(connect_mat,calc_v)
 		calc_idx = rslt_v.find(1)
@@ -62,6 +71,17 @@ func graph2computation(input_x,adj_matrice):
 		# update output
 		if calc_idx == 0 :
 			s[calc_idx] = wproduct
+		elif i == adj_matrice.size() - 1 :
+			s[calc_idx] = ReLU(wproduct)
 		else :
-			s[calc_idx] = heaviside(wproduct)
+			s[calc_idx] = Heaviside(wproduct)
 	return s[-1] # only fixed output
+
+func normalization(fct) :
+	var normed = []
+	if fct.max() != 0 :
+		for f in fct :
+			normed += [f/fct.max()]
+	else :
+		normed = fct
+	return normed

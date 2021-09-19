@@ -15,9 +15,15 @@ var cm2pix = 3.7795275591
 var init_pos_in = Vector2.ZERO
 var init_pos_out = Vector2.ZERO
 
+var In_signal = {}
+var Out_signal = Array([])
+
 var Biases # get by the GraphGen (to improve)
 var Weight_in
 var Weight_out
+
+var connected_in: bool = false
+var connected_out: bool = false
 
 func _ready():
 	screen_size = get_viewport_rect().size
@@ -37,11 +43,18 @@ func _process(_delta):
 		absolut_position_out = position + relative_pos_out / cm2pix
 		d_in = absolut_position_in - position_mouse
 		d_out = absolut_position_out - position_mouse
-		if d_.length() < screen_size[0]/10 :
+		if d_.length() < 25 :
 			position = position_mouse
-			$IN.points[1] = (absolut_position_in - position)*cm2pix
-			$OUT.points[1] = (absolut_position_out - position)*cm2pix
+			if connected_in :
+				$IN.points[1] = (absolut_position_in - position)*cm2pix
+			if connected_out :
+				$OUT.points[1] = (absolut_position_out - position)*cm2pix
 		elif d_in.length() < 25 :
 			$IN.points[1] = -(position - position_mouse)*cm2pix
 		elif d_out.length() < 25 :
 			$OUT.points[1] = -(position - position_mouse)*cm2pix
+	else :
+		if not(connected_in) :
+			$IN.points[1] = init_pos_in
+		if not(connected_out) :
+			$OUT.points[1] = init_pos_out

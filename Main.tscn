@@ -10,7 +10,7 @@
 
 [sub_resource type="Curve2D" id=1]
 _data = {
-"points": PoolVector2Array( 0, 0, 0, 0, 520, 400, 0, 0, 0, 0, 280, 400 )
+"points": PoolVector2Array( 0, 0, 0, 0, 640, 400, 0, 0, 0, 0, 560, 440, 0, 0, 0, 0, 400, 460, 0, 0, 0, 0, 240, 440, 0, 0, 0, 0, 160, 400 )
 }
 
 [sub_resource type="CanvasItemMaterial" id=2]
@@ -42,8 +42,8 @@ __meta__ = {
 curve = SubResource( 1 )
 
 [node name="NeuronSpawnLoc" type="PathFollow2D" parent="MovePath"]
-position = Vector2( 520, 400 )
-rotation = 3.14159
+position = Vector2( 640, 400 )
+rotation = 2.67795
 
 [node name="TargetY" type="Line2D" parent="."]
 position = Vector2( 0, 22 )
@@ -64,7 +64,7 @@ default_color = Color( 1, 0.4, 0.4, 1 )
 environment = SubResource( 3 )
 
 [node name="CurveUpdate" type="Timer" parent="."]
-wait_time = 2.0
+wait_time = 0.1
 autostart = true
 
 [connection signal="reset_link" from="HUD" to="." method="_reset_lvl"]
