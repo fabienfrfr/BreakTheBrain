@@ -22,5 +22,5 @@ func _process(_delta):
 		if d_.length() < 50 :
 			delta_m = (position_mouse.x - $Line.points[0].x)
 			delta_x = ($Line.points[1].x - $Line.points[0].x)
-			offset = float(int(100*delta_m/delta_x)%100)/100
+			offset = clamp(abs(delta_m/(delta_x+0.001)), 0.1,0.9)
 			$Line/Cursor.position = $Line.points[0].linear_interpolate($Line.points[1], offset)

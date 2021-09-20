@@ -35,14 +35,24 @@ func node_generator(nb_i, nb_out, nb_fix, nb_mov):
 	var dy_i = 200/(nb_i+1)
 	var dy_o = 200/(nb_out+1)
 	var dist
+	# input
 	for i in range(nb_i):
 		position += [Vector2(x_in,y_sep-100+(i+1)*dy_i)]
 		type_node += ['input']
 		adj_list_ += [[]]
 		weight_ += [[]]
 		biaise_ += [1]
+	# fix
+	var grid_fix = []
+	var idx_fix
+	for xi in range(5):
+		for yi in range(3):
+			grid_fix += [Vector2(xi,yi)]
 	for _i in range(nb_fix):
-		position += [Vector2(x_in+50+randi()%500,y_up+randi()%(y_sep-3*y_up))]
+		idx_fix = randi() % grid_fix.size()
+		var v = grid_fix[idx_fix]
+		position += [Vector2(x_in+50+v.x*100,y_up+v.y*100)]
+		grid_fix.remove(idx_fix)
 		type_node += ['fixed']
 		dist = []
 		for p in position :
@@ -51,12 +61,14 @@ func node_generator(nb_i, nb_out, nb_fix, nb_mov):
 		adj_list_ += [[dist.find(dist.min())]]
 		weight_ += [[-1]]
 		biaise_ += [1]
+	# movable
 	for _i in range(nb_mov):
 		position += [Vector2.ZERO]
 		type_node += ['movable']
 		adj_list_ += [[]]
 		weight_ += [[]]
 		biaise_ += [1]
+	# output
 	for i in range(nb_out):
 		position += [Vector2(x_out,y_sep-100+(i+1)*dy_o)]
 		type_node += ['output']

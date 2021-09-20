@@ -8,8 +8,8 @@ export (PackedScene) var MovableNeuron
 
 const nb_i = 1
 const nb_out = 1
-const nb_fix = 1
-const nb_mov = 1
+var nb_fix = 2
+var nb_mov = 2
 
 var movable_vertices = []
 var vertices = []
@@ -18,11 +18,12 @@ var x_input_values = Array([])
 var target_values = Array([])
 var predicted_values = Array([])
 const delta_x_val = 8.0
-var points_count
-var min_x = 40
-var max_x = 720
-var min_y = 560
-var max_y = 500
+var points_count = 100
+
+const min_x = 40
+const max_x = 720
+const min_y = 560
+const max_y = 500
 
 var score: int
 
@@ -59,12 +60,19 @@ func _reset_lvl():
 		m.get_node("OUT").points[1] = m.init_pos_out
 	# forcing update matrix (why doesn't works always?)
 	$GraphGen.adj_matrix = $GraphGen.adj_matrix_copy.duplicate(true)
-	#_ready()
+	var noding = $HUD._level_p_gen(nb_fix + nb_mov, score) # change nb_mov&fix
+	print(noding)
 
 func curve_init():
-	points_count = $TargetY.get_point_count()
+	# line init
+	$TargetY.clear_points()
+	$PredictedY.clear_points()
+	for n in range(points_count):
+		$TargetY.add_point(Vector2(min_x+n*(max_x-min_x)/(points_count-1),0))
+		$PredictedY.add_point(Vector2(min_x+n*(max_x-min_x)/(points_count-1),0))
+	print($TargetY.points)
+	# linear input
 	for n in range(points_count) :
-		predicted_values += [0]
 		x_input_values += [delta_x_val*(float(n)/(points_count-1))-delta_x_val/2]
 	## curve solution
 	target_values = nn.solution_generator(x_input_values, nb_i+nb_fix, $GraphGen.pos_node, $GraphGen.adj_matrix, movable_vertices)
@@ -88,8 +96,6 @@ func _CurveUpdate():
 	error = error/points_count
 	# update text score
 	$HUD/Error_abs.text = str(int(100*(1-error))) + " %"
-	# dev test
-	print($GraphGen.adj_matrix)
 	
 func _check_connection():
 	for m in movable_vertices :
@@ -111,6 +117,8 @@ func _check_connection():
 		if dist_in_list.min() < 25 :
 			$GraphGen.adj_matrix[-2][idx_in] = m.Weight_in
 			m.connected_in = true
+			m.get_node("IN").points[1] = -(m.position -  $GraphGen.pos_node[idx_in])*m.cm2pix
 		if dist_out_list.min() < 25 :
 			$GraphGen.adj_matrix[idx_out][-2] = m.Weight_out
 			m.connected_out = true
+			m.get_node("OUT").points[1] = -(m.position -  $GraphGen.pos_node[idx_out])*m.cm2pix

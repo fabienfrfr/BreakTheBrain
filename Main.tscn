@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=2]
+[gd_scene load_steps=16 format=2]
 
 [ext_resource path="res://asset/background.png" type="Texture" id=1]
 [ext_resource path="res://Main.gd" type="Script" id=2]
@@ -7,6 +7,7 @@
 [ext_resource path="res://node/InputX.tscn" type="PackedScene" id=5]
 [ext_resource path="res://node/GraphGen.tscn" type="PackedScene" id=6]
 [ext_resource path="res://node/HUD.tscn" type="PackedScene" id=7]
+[ext_resource path="res://node/TrainLine.gd" type="Script" id=8]
 
 [sub_resource type="Curve2D" id=1]
 _data = {
@@ -16,7 +17,20 @@ _data = {
 [sub_resource type="CanvasItemMaterial" id=2]
 blend_mode = 1
 
-[sub_resource type="Environment" id=3]
+[sub_resource type="CanvasItemMaterial" id=3]
+blend_mode = 1
+
+[sub_resource type="Gradient" id=4]
+
+[sub_resource type="Gradient" id=5]
+colors = PoolColorArray( 0, 0, 0, 1, 1, 0.4, 0.4, 1 )
+
+[sub_resource type="Curve2D" id=6]
+_data = {
+"points": PoolVector2Array( 0, 0, 0, 0, 40, 538, 0, 0, 0, 0, 760, 538 )
+}
+
+[sub_resource type="Environment" id=7]
 background_mode = 4
 ambient_light_energy = 0.0
 glow_enabled = true
@@ -46,22 +60,27 @@ position = Vector2( 640, 400 )
 rotation = 2.67795
 
 [node name="TargetY" type="Line2D" parent="."]
+material = SubResource( 2 )
 position = Vector2( 0, 22 )
-points = PoolVector2Array( 40, 560, 60, 560, 80, 560, 100, 560, 120, 560, 140, 560, 160, 560, 180, 560, 200, 560, 220, 560, 240, 560, 260, 560, 280, 560, 300, 560, 320, 500, 340, 500, 360, 500, 380, 500, 400, 500, 420, 500, 440, 500, 460, 500, 480, 500, 500, 560, 520, 560, 540, 560, 560, 560, 580, 560, 600, 560, 620, 560, 640, 560, 660, 560, 680, 560, 700, 560, 720, 560, 740, 560, 760, 560 )
 width = 7.0
 default_color = Color( 0.980392, 1, 0.4, 1 )
 
 [node name="PredictedY" type="Line2D" parent="."]
-material = SubResource( 2 )
+material = SubResource( 3 )
 position = Vector2( 0, 22 )
-points = PoolVector2Array( 40, 560, 60, 560, 80, 560, 100, 560, 120, 560, 140, 560, 160, 560, 180, 560, 200, 560, 220, 560, 240, 560, 260, 560, 280, 560, 300, 560, 320, 560, 340, 560, 360, 560, 380, 560, 400, 500, 420, 500, 440, 500, 460, 500, 480, 500, 500, 500, 520, 500, 540, 500, 560, 500, 580, 500, 600, 500, 620, 500, 640, 500, 660, 500, 680, 500, 700, 500, 720, 500, 740, 500, 760, 500 )
 width = 5.0
 default_color = Color( 1, 0.4, 0.4, 1 )
+gradient = SubResource( 4 )
+script = ExtResource( 8 )
+grad = SubResource( 5 )
+
+[node name="TraceWave" type="Path2D" parent="PredictedY"]
+curve = SubResource( 6 )
 
 [node name="HUD" parent="." instance=ExtResource( 7 )]
 
 [node name="Glow" type="WorldEnvironment" parent="."]
-environment = SubResource( 3 )
+environment = SubResource( 7 )
 
 [node name="CurveUpdate" type="Timer" parent="."]
 wait_time = 0.1

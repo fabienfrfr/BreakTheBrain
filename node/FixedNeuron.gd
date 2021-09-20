@@ -36,11 +36,5 @@ func _process(_delta):
 		d_ = absolut_position_cursor - position_mouse
 		if d_.length() < 15 :
 			new_position_cursor = -(position.y - position_mouse.y)*cm2pix
-			# inverted position
-			if new_position_cursor < max_biases_pos :
-				$Biases.points[1].y = max_biases_pos
-			elif new_position_cursor > min_biases_pos :
-				$Biases.points[1].y = min_biases_pos
-			else :
-				$Biases.points[1].y = new_position_cursor
+			$Biases.points[1].y = clamp(new_position_cursor, max_biases_pos, min_biases_pos)
 			offset = abs(($Biases.points[1].y - min_biases_pos)/(max_biases_pos-min_biases_pos))
