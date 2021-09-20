@@ -8,8 +8,8 @@ export (PackedScene) var MovableNeuron
 
 const nb_i = 1
 const nb_out = 1
-const nb_fix = 3
-const nb_mov = 3
+const nb_fix = 1
+const nb_mov = 1
 
 var movable_vertices = []
 var vertices = []
@@ -63,17 +63,21 @@ func _reset_lvl():
 
 func curve_init():
 	points_count = $TargetY.get_point_count()
-	## to improve : curve solution
-	for t in $TargetY.points :
-		target_values += [(t.y-min_y)/(max_y-min_y)]
 	for n in range(points_count) :
 		predicted_values += [0]
 		x_input_values += [delta_x_val*(float(n)/(points_count-1))-delta_x_val/2]
+	## curve solution
+	target_values = nn.solution_generator(x_input_values, nb_i+nb_fix, $GraphGen.pos_node, $GraphGen.adj_matrix, movable_vertices)
+	for n in range(points_count):
+		$TargetY.points[n].y = min_y + (max_y-min_y)*target_values[n]
+	# update first curve
 	_CurveUpdate()
 
 func _CurveUpdate():
 	# update movable neuron adjacency
 	_check_connection()
+	# update weight-biase
+	$GraphGen._update(vertices)
 	# compute graph prediction and error
 	predicted_values = nn.graph2computation(x_input_values, $GraphGen.adj_matrix)
 	predicted_values = nn.normalization(predicted_values)
@@ -82,8 +86,7 @@ func _CurveUpdate():
 		error += abs(target_values[n] - predicted_values[n])
 		$PredictedY.points[n].y = min_y + (max_y-min_y)*predicted_values[n]
 	error = error/points_count
-	# update line2d and text score
-	$GraphGen.update()
+	# update text score
 	$HUD/Error_abs.text = str(int(100*(1-error))) + " %"
 	# dev test
 	print($GraphGen.adj_matrix)

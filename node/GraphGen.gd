@@ -7,7 +7,6 @@ export (PackedScene) var Edges
 ### define static type (faster)
 var v_size
 var pos_node
-#input, fixed, movable, output (init)
 var type_n
 var adj_list
 var weight
@@ -114,9 +113,15 @@ func init_constructor(nb_i, nb_out, nb_fix, nb_mov):
 		edges_list += edge
 	print(adj_matrix)
 
-func update():
-	# to improve : generalize 
+func _update(vertice):
+	# to improve : generalize to multiple initial link
 	for i in range(1, adj_list.size()):
 		if edges_list[i-1] is (Node) :
 			offset = edges_list[i-1].offset
 			adj_matrix[i][adj_list[i][0]] = adj_matrix_copy[i][adj_list[i][0]] + 2.5*(0.5 - offset)
+	# node biases update
+	for i in range(1,vertice.size()) :
+		if i == vertice.size() - 1 :
+			adj_matrix[-1][-1] = adj_matrix_copy[-1][-1] + 1.5*(vertice[i].offset - 0.5)
+		else :
+			adj_matrix[i][i] = adj_matrix_copy[i][i] + 1.5*(vertice[i].offset - 0.5)

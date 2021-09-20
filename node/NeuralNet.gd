@@ -1,5 +1,7 @@
 extends Node
 
+var solution_matrix
+
 # dot product matrix*vector
 func dot_mv(mat,vect):
 	var c = []
@@ -85,3 +87,26 @@ func normalization(fct) :
 	else :
 		normed = fct
 	return normed
+
+func solution_generator(input, nb_c, position_node, init_adj_matrix, movable_neuron):
+	solution_matrix = init_adj_matrix.duplicate(true)
+	# generate connection of movable neuron
+	var in_idx
+	var in_pos
+	var out_idx_list
+	var out_idx
+	# input then output
+	for i in range(movable_neuron.size()):
+		in_idx = randi() % nb_c
+		in_pos = position_node[in_idx]
+		out_idx_list = []
+		for j in range(position_node.size()) :
+			if position_node[j] > in_pos :
+				out_idx_list += [j]
+		out_idx = out_idx_list[randi() % out_idx_list.size()]
+		# add in solution matrix
+		solution_matrix[nb_c+i][in_idx] = movable_neuron[i].Weight_in
+		solution_matrix[out_idx][nb_c+i] = movable_neuron[i].Weight_out
+	# return solution
+	return graph2computation(input,solution_matrix)
+
