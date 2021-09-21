@@ -17,7 +17,9 @@ extents = Vector2( 23.6351, 23.5984 )
 [sub_resource type="CanvasItemMaterial" id=3]
 blend_mode = 1
 
-[node name="FixedNeuron" type="RigidBody2D"]
+[node name="FixedNeuron" type="RigidBody2D" groups=[
+"fix_group",
+]]
 gravity_scale = 0.0
 script = ExtResource( 1 )
 

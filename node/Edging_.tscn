@@ -13,7 +13,7 @@ orbit_velocity_random = 0.0
 scale = 0.5
 
 [node name="Edging_" type="Node" groups=[
-"EgdesTree",
+"edge_group",
 ]]
 script = ExtResource( 1 )
 

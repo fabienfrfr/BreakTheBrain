@@ -26,10 +26,14 @@ const min_y = 560
 const max_y = 500
 
 var score: int
-
 var nn
 
+var n_time
+var w_time
+
 func _ready():
+	n_time = 0
+	w_time = $CurveUpdate.wait_time
 	randomize()
 	nn =  NeuralNet.new()
 	$GraphGen.init_constructor(nb_i, nb_out, nb_fix, nb_mov)
@@ -50,27 +54,25 @@ func _ready():
 			vertices[-1].position.y = $GraphGen.pos_node[i][1]
 	# save matrix
 	$GraphGen.adj_matrix_copy = $GraphGen.adj_matrix.duplicate(true)
+	print(movable_vertices.size())
 	# show curve
 	curve_init()
 
 func _reset_lvl():
+	# update difficulty
 	score = 1 - 1 # next difficulty
-	for m in movable_vertices :
-		m.get_node("IN").points[1] = m.init_pos_in
-		m.get_node("OUT").points[1] = m.init_pos_out
-	# forcing update matrix (why doesn't works always?)
-	$GraphGen.adj_matrix = $GraphGen.adj_matrix_copy.duplicate(true)
 	var noding = $HUD._level_p_gen(nb_fix + nb_mov, score) # change nb_mov&fix
-	print(noding)
+	# reset all
+	movable_vertices = []
+	vertices = []
+	_ready()
 
 func curve_init():
 	# line init
 	$TargetY.clear_points()
-	$PredictedY.clear_points()
+	$PredictedY._initialization(points_count, min_x, max_x, min_y, max_y)
 	for n in range(points_count):
 		$TargetY.add_point(Vector2(min_x+n*(max_x-min_x)/(points_count-1),0))
-		$PredictedY.add_point(Vector2(min_x+n*(max_x-min_x)/(points_count-1),0))
-	print($TargetY.points)
 	# linear input
 	for n in range(points_count) :
 		x_input_values += [delta_x_val*(float(n)/(points_count-1))-delta_x_val/2]
@@ -89,13 +91,15 @@ func _CurveUpdate():
 	# compute graph prediction and error
 	predicted_values = nn.graph2computation(x_input_values, $GraphGen.adj_matrix)
 	predicted_values = nn.normalization(predicted_values)
+	$PredictedY.update_path_and_point(predicted_values, n_time*w_time)
 	var error = 0
 	for n in range(points_count) :
 		error += abs(target_values[n] - predicted_values[n])
-		$PredictedY.points[n].y = min_y + (max_y-min_y)*predicted_values[n]
 	error = error/points_count
 	# update text score
 	$HUD/Error_abs.text = str(int(100*(1-error))) + " %"
+	# update time
+	n_time += 1
 	
 func _check_connection():
 	for m in movable_vertices :

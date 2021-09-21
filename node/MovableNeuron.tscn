@@ -18,7 +18,7 @@ animations = [ {
 radius = 24.0
 
 [node name="MovableNeuron" type="RigidBody2D" groups=[
-"Movable_neuron",
+"mov_group",
 ]]
 gravity_scale = 0.0
 script = ExtResource( 1 )

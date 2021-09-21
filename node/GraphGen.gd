@@ -45,13 +45,13 @@ func node_generator(nb_i, nb_out, nb_fix, nb_mov):
 	# fix
 	var grid_fix = []
 	var idx_fix
-	for xi in range(5):
-		for yi in range(3):
+	for xi in range(3):
+		for yi in range(2):
 			grid_fix += [Vector2(xi,yi)]
 	for _i in range(nb_fix):
 		idx_fix = randi() % grid_fix.size()
 		var v = grid_fix[idx_fix]
-		position += [Vector2(x_in+50+v.x*100,y_up+v.y*100)]
+		position += [Vector2(x_in+50+v.x*(500/3),y_up+v.y*(300/2))]
 		grid_fix.remove(idx_fix)
 		type_node += ['fixed']
 		dist = []

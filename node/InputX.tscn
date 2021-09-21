@@ -13,7 +13,9 @@ animations = [ {
 [sub_resource type="CircleShape2D" id=2]
 radius = 17.4356
 
-[node name="InputX" type="RigidBody2D"]
+[node name="InputX" type="RigidBody2D" groups=[
+"In_group",
+]]
 gravity_scale = 0.0
 
 [node name="AnimatedSprite" type="AnimatedSprite" parent="."]
