@@ -26,6 +26,7 @@ const min_y = 560
 const max_y = 500
 
 var score: int
+var try: int = 0
 var nn
 
 var n_time
@@ -59,13 +60,25 @@ func _ready():
 	curve_init()
 
 func _reset_lvl():
-	# update difficulty
-	score = 1 - 1 # next difficulty
-	var noding = $HUD._level_p_gen(nb_fix + nb_mov, score) # change nb_mov&fix
-	# reset all
-	movable_vertices = []
-	vertices = []
-	_ready()
+	if try < 3 :
+		print(try)
+		# include 3 tries before reset all :
+		for m in movable_vertices :
+			m.get_node("IN").points[1] = m.init_pos_in
+			m.get_node("OUT").points[1] = m.init_pos_out
+		# forcing update matrix (why doesn't works always?)
+		$GraphGen.adj_matrix = $GraphGen.adj_matrix_copy.duplicate(true)
+		try += 1
+	else :
+		print('haha')
+		try = 0
+		# update difficulty :
+		score = 1 - 1 # next difficulty
+		var noding = $HUD._level_p_gen(nb_fix + nb_mov, score) # change nb_mov&fix
+		# reset all :
+		movable_vertices = []
+		vertices = []
+		_ready()
 
 func curve_init():
 	# line init
