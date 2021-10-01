@@ -1,40 +1,29 @@
-extends RigidBody2D
+extends Node2D
 
-var Weight = {}
-var Biaise
+# setter
+var target = Vector2.ZERO setget set_mvt
+# getter
+var type = "fix" setget , get_type
 
-var min_biases_pos
-var max_biases_pos
+### variable
+var biases_pos = {'min':0, 'max':0, 'offset':0, "delta":0}
+var cm2pix = 4
+var new_position
 
-var In_signal = {}
-var Out_signal = Array([])
-
-var position_mouse
-var relative_pos_cursor
-var absolut_position_cursor
-var d_
-var new_position_cursor
-var cm2pix = 3.7795275591
-
-var offset
-
+### function
 func _ready():
-	min_biases_pos = $Biases.points[0].y
-	max_biases_pos = $Biases.points[1].y
+	# initialize biase extremum
+	biases_pos['min'] = $Biases.points[0].y
+	biases_pos['max'] = $Biases.points[1].y
 	# middle position of biases cursor
-	$Biases.points[1].y = (min_biases_pos + max_biases_pos)/2
-	offset = 0.5
+	$Biases.points[1].y = (biases_pos['min'] + biases_pos['max'])/2
+	biases_pos['offset'] = 0.5
+	biases_pos["delta"] = biases_pos['max'] - biases_pos['min']
 
-func collect_info():
-	pass
+func set_mvt(value):
+	new_position = -0.1*(position.y - value.y)*cm2pix
+	$Biases.points[1].y = clamp(new_position, biases_pos['max'], biases_pos['min'])
+	biases_pos['offset'] = abs(($Biases.points[1].y - biases_pos['min'])/(biases_pos["delta"]))
 
-func _process(_delta):
-	position_mouse = get_viewport().get_mouse_position()
-	if Input.is_action_pressed("ui_accept"):
-		relative_pos_cursor = $Biases.get_point_position(1)
-		absolut_position_cursor = position + relative_pos_cursor / cm2pix
-		d_ = absolut_position_cursor - position_mouse
-		if d_.length() < 15 :
-			new_position_cursor = -(position.y - position_mouse.y)*cm2pix
-			$Biases.points[1].y = clamp(new_position_cursor, max_biases_pos, min_biases_pos)
-			offset = abs(($Biases.points[1].y - min_biases_pos)/(max_biases_pos-min_biases_pos))
+func get_type():
+	return type

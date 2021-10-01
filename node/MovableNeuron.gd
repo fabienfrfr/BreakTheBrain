@@ -1,60 +1,66 @@
-extends RigidBody2D
+extends KinematicBody2D
 
-var screen_size
-var position_mouse
-var d_ 
+# set-getter
+var location setget set_location
+var type = "mov" setget , get_type
+# parameter
+var n = 3
+var init_points = [Vector2.ZERO, Vector2.ZERO]
+var cm2pix = 4 # get transform relation
+onready var path := [[$Link_IN, $Link_IN/Cursor],[$Link_OUT,$Link_OUT/Cursor]]
+var connected = [false,false] setget set_connected
+# init collision parameter
+var velocity = Vector2.ZERO
 
-var absolut_position_in = Vector2.ZERO
-var absolut_position_out = Vector2.ZERO
-var relative_pos_in
-var relative_pos_out
-var d_in
-var d_out
-var cm2pix = 3.7795275591
+func get_type():
+	return type
 
-var init_pos_in = Vector2.ZERO
-var init_pos_out = Vector2.ZERO
+func init_location():
+	location = [position]
+	location += [path[0][1].global_position]
+	location += [path[1][1].global_position]
+	# save init relative points
+	init_points[0] = path[0][1].position
+	init_points[1] = path[1][1].position
 
-var In_signal = {}
-var Out_signal = Array([])
+func _physics_process(_delta):
+	# to improve (bonus effect)
+	"""
+	velocity = position.direction_to(location[0])
+	var collision = move_and_collide(velocity * delta)
+	if collision != null :
+		print(collision)
+		init_location()
+	update()
+	"""
+	pass
 
-var Biases # get by the GraphGen (to improve)
-var Weight_in
-var Weight_out
+func set_location(values):
+	# move neuron
+	if values[1] == 0 :
+		# update path
+		location[0] = values[0]
+		for i in range(path.size()) :
+			if connected[i] :
+				path[i][0].points[1] += (position - values[0])*cm2pix
+				path[i][1].position = path[i][0].points[1]
+			else :
+				location[i+1] = values[0] + path[i][1].position / cm2pix
+		# change position
+		position = values[0]
+	# move clips
+	else : 
+		if connected[values[1]-1] :
+			pass
+		else :
+			location[values[1]] = values[0]
+			path[values[1]-1][0].points[1] = (values[0] - location[0])*cm2pix
+			path[values[1]-1][1].position = path[values[1]-1][0].points[1]
 
-var connected_in: bool = false
-var connected_out: bool = false
-
-func _ready():
-	screen_size = get_viewport_rect().size
-	init_pos_in = $IN.get_point_position(1)
-	init_pos_out = $OUT.get_point_position(1)
-	Biases = 1.0
-	Weight_in = 1.0
-	Weight_out = 1.0
-
-func _process(_delta):
-	position_mouse = get_viewport().get_mouse_position()
-	if Input.is_action_pressed("ui_accept"):
-		d_ = position - position_mouse
-		relative_pos_in = $IN.get_point_position(1)
-		relative_pos_out = $OUT.get_point_position(1)
-		absolut_position_in = position + relative_pos_in / cm2pix
-		absolut_position_out = position + relative_pos_out / cm2pix
-		d_in = absolut_position_in - position_mouse
-		d_out = absolut_position_out - position_mouse
-		if d_.length() < 25 :
-			position = position_mouse
-			if connected_in :
-				$IN.points[1] = (absolut_position_in - position)*cm2pix
-			if connected_out :
-				$OUT.points[1] = (absolut_position_out - position)*cm2pix
-		elif d_in.length() < 25 :
-			$IN.points[1] = -(position - position_mouse)*cm2pix
-		elif d_out.length() < 25 :
-			$OUT.points[1] = -(position - position_mouse)*cm2pix
-	else :
-		if not(connected_in) :
-			$IN.points[1] = init_pos_in
-		if not(connected_out) :
-			$OUT.points[1] = init_pos_out
+func set_connected(values):
+	connected[values[1]] = values[0]
+	# if not connection finded
+	if not(values[0]) :
+		path[values[1]][0].points[1] = init_points[values[1]]
+		path[values[1]][1].position = path[values[1]][0].points[1]
+		location[values[1]+1] = position + path[values[1]][1].position / cm2pix

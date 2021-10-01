@@ -77,7 +77,7 @@ func graph2computation(input_x,adj_matrice):
 			s[calc_idx] = ReLU(wproduct)
 		else :
 			s[calc_idx] = Heaviside(wproduct)
-	return s[-1] # only fixed output
+	return normalization(s[-1]) # only fixed output
 
 func normalization(fct) :
 	var normed = []
@@ -88,25 +88,34 @@ func normalization(fct) :
 		normed = fct
 	return normed
 
-func solution_generator(input, nb_c, position_node, init_adj_matrix, movable_neuron):
-	solution_matrix = init_adj_matrix.duplicate(true)
+func solution_generator(input, param, graph) : #nb_c, position_node, init_adj_matrix, movable_neuron):
+	solution_matrix = graph["matrix"].duplicate(true)
 	# generate connection of movable neuron
+	var nb_connect_in = param["nb_i"] + param["nb_fix"]
 	var in_idx
 	var in_pos
 	var out_idx_list
 	var out_idx
-	# input then output
-	for i in range(movable_neuron.size()):
-		in_idx = randi() % nb_c
-		in_pos = position_node[in_idx]
+	# fix part :
+	for l in range(param["nb_i"], nb_connect_in) :
+		for c in range(solution_matrix[l].size()) :
+			if solution_matrix[l][c] != 0 :
+				solution_matrix[l][c] += 0.85*(randf()-0.5)
+	# out part (to adapt if 2d output)
+	for c in range(solution_matrix[-1].size()):
+		if solution_matrix[-1][c] != 0 :
+			solution_matrix[-1][c] += 0.5*(randf()-0.5)
+	# mov part : input then output
+	for i in range(param["nb_mov"]):
+		in_idx = randi() % nb_connect_in
+		in_pos = graph['position'][in_idx]
 		out_idx_list = []
-		for j in range(position_node.size()) :
-			if position_node[j] > in_pos :
+		for j in range(graph['position'].size()) :
+			if graph['position'][j] > in_pos and graph['type'][j] != "mov" :
 				out_idx_list += [j]
 		out_idx = out_idx_list[randi() % out_idx_list.size()]
 		# add in solution matrix
-		solution_matrix[nb_c+i][in_idx] = movable_neuron[i].Weight_in
-		solution_matrix[out_idx][nb_c+i] = movable_neuron[i].Weight_out
+		solution_matrix[nb_connect_in+i][in_idx] = graph["w_mov"][i][0] # in
+		solution_matrix[out_idx][nb_connect_in+i] = graph["w_mov"][i][1] # out
 	# return solution
 	return graph2computation(input,solution_matrix)
-

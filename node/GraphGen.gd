@@ -1,139 +1,101 @@
-extends Node2D
+extends Node
 
-export var line_width = 5
+### variable
+var graph_var = {"size":0, "position":[], "type":[], "adj_list":[], "weight":[], "biases":[], "w_mov": []}
+var grid = [3,3]
+### screen taking (relative 2 absolute)
+var l_ = {"xL":0.1, "xR":0.9, "yU":0.2, "yM":0.5, "dX":0.2, "dY":0.1, "xnd":1}
+func layout_update(screen_size):
+	l_["xL"] *= screen_size.x
+	l_["xR"] *= screen_size.x
+	l_["yU"] *= screen_size.y
+	l_["yM"] *= screen_size.y
+	l_["dX"] *= screen_size.x
+	l_["dY"] *= screen_size.y
+	l_["DX"] = screen_size.x-4*l_["xL"]
 
-export (PackedScene) var Edges
-
-### define static type (faster)
-var v_size
-var pos_node
-var type_n
-var adj_list
-var weight
-var biases
-
-var posA = Vector2.ZERO
-var posB = Vector2.ZERO
-
-var edges_list
-var adj_matrix
-
-var adj_matrix_copy
-var offset
-
-var x_in = 100
-var x_out = 700
-var y_sep = 300
-var y_up = 50
-
-func node_generator(nb_i, nb_out, nb_fix, nb_mov):
-	var position = []
-	var type_node = []
-	var adj_list_ = []
-	var weight_ = []
-	var biaise_ = []
-	var dy_i = 200/(nb_i+1)
-	var dy_o = 200/(nb_out+1)
+func node_generator(gp):
+	# param graph_var["biases"]
+	var dy_i = l_["dY"]/(gp['nb_i']+1)
+	var dy_o = l_["dY"]/(gp['nb_out']+1)
 	var dist
 	# input
-	for i in range(nb_i):
-		position += [Vector2(x_in,y_sep-100+(i+1)*dy_i)]
-		type_node += ['input']
-		adj_list_ += [[]]
-		weight_ += [[]]
-		biaise_ += [1]
+	for i in range(gp['nb_i']):
+		graph_var["position"] += [Vector2(l_["xL"],l_["yM"]-i*dy_i)]
+		graph_var["type"] += ['in']
+		graph_var["adj_list"] += [[]]
+		graph_var["weight"] += [[]]
+		graph_var["biases"] += [randf()-0.5]
 	# fix
 	var grid_fix = []
 	var idx_fix
-	for xi in range(3):
-		for yi in range(2):
+	for xi in range(grid[0]):
+		for yi in range(grid[1]):
 			grid_fix += [Vector2(xi,yi)]
-	for _i in range(nb_fix):
+	for _i in range(gp['nb_fix']):
+		# position
 		idx_fix = randi() % grid_fix.size()
 		var v = grid_fix[idx_fix]
-		position += [Vector2(x_in+50+v.x*(500/3),y_up+v.y*(300/2))]
+		graph_var["position"] += [Vector2(3*l_["xL"]+v.x*(l_["DX"]/grid[0]),l_["yU"]+v.y*(l_["yM"]/grid[1]))]
 		grid_fix.remove(idx_fix)
-		type_node += ['fixed']
+		# link
 		dist = []
-		for p in position :
-			dist += [(position[-1]-p).length()]
-		dist[-1] = 10000
-		adj_list_ += [[dist.find(dist.min())]]
-		weight_ += [[-1]]
-		biaise_ += [1]
+		for p in graph_var["position"] :
+			dist += [(graph_var["position"][-1]-p)]
+			if dist[-1].x <= 0 :
+				dist[-1] = NAN # front or itself
+			else : 
+				dist[-1] = dist[-1].length()
+		graph_var["type"] += ['fix']
+		graph_var["adj_list"] += [[dist.find(dist.min())]]
+		graph_var["weight"] += [[randf()-0.5]]
+		graph_var["biases"] += [randf()-0.5]
 	# movable
-	for _i in range(nb_mov):
-		position += [Vector2.ZERO]
-		type_node += ['movable']
-		adj_list_ += [[]]
-		weight_ += [[]]
-		biaise_ += [1]
+	for _i in range(gp['nb_mov']):
+		graph_var["position"] += [Vector2.ZERO]
+		graph_var["type"] += ['mov']
+		graph_var["adj_list"] += [[]]
+		graph_var["weight"] += [[]]
+		graph_var["biases"] += [randf()-0.5]
+		graph_var["w_mov"] += [[randf()-0.5,randf()-0.5]]
 	# output
-	for i in range(nb_out):
-		position += [Vector2(x_out,y_sep-100+(i+1)*dy_o)]
-		type_node += ['output']
+	for i in range(gp['nb_out']):
+		graph_var["position"] += [Vector2(l_["xR"],l_["yM"]-i*dy_o)]
+		graph_var["type"] += ['out']
 		dist = []
-		for p in position :
+		for p in graph_var["position"] :
 			# forward propagation only (need to verify)
-			if (position[-1]-p).x > 0 : 
-				dist += [(position[-1]-p).length()]
+			if (graph_var["position"][-1]-p).x > 0 : 
+				dist += [(graph_var["position"][-1]-p).length()]
 			else :
-				dist += [100000]
-		adj_list_ += [[dist.find(dist.min())]]
-		weight_ += [[1]]
-		biaise_ += [-1]
-	return [position, type_node, adj_list_, weight_, biaise_]
+				dist += [NAN]
+		graph_var["adj_list"] += [[dist.find(dist.min())]]
+		graph_var["weight"] += [[randf()-0.5]]
+		graph_var["biases"] += [randf()-0.5]
 
-func init_constructor(nb_i, nb_out, nb_fix, nb_mov):
-	v_size = nb_i + nb_out + nb_fix + nb_mov
+func construct_random_netgraph(gp, screensize):
+	# layout update
+	layout_update(screensize)
+	# nb_node
+	for v in gp.values():
+		graph_var["size"] += v
 	# generate position and param (to improve)
-	var param = node_generator(nb_i, nb_out, nb_fix, nb_mov)
-	pos_node = param[0]
-	type_n = param[1]
-	adj_list = param[2]
-	weight = param[3]
-	biases = param[4]
+	node_generator(gp)
 	# construct matrix
-	adj_matrix = []
+	var adj_matrix = []
 	var line = []
 	# empty matrix
-	for _i in range(v_size):
-		for _j in range(v_size):
+	for _i in range(graph_var["size"]):
+		for _j in range(graph_var["size"]):
 			line += [0]
 		adj_matrix += [line]
 		line = []
 	# update matrix
-	for i in range(v_size):
+	for i in range(graph_var["size"]):
 		# add biases
-		adj_matrix[i][i] = biases[i]
+		adj_matrix[i][i] = graph_var["biases"][i]
 		# add weight
-		for l in adj_list[i]:
-			adj_matrix[i][l] = weight[i][0]
-	# edges construction
-	edges_list = Array([])
-	for i in range(1, adj_list.size()):
-		var edge = [0]
-		for l in adj_list[i] :
-			# update
-			posA = pos_node[l]
-			posB = pos_node[i]
-			# instance line
-			edge = [Edges.instance()]
-			add_child(edge[-1])
-			# add edges
-			edge[-1].add_link(posA,posB)
-		edges_list += edge
-	print(adj_matrix)
-
-func _update(vertice):
-	# to improve : generalize to multiple initial link
-	for i in range(1, adj_list.size()):
-		if edges_list[i-1] is (Node) :
-			offset = edges_list[i-1].offset
-			adj_matrix[i][adj_list[i][0]] = adj_matrix_copy[i][adj_list[i][0]] + 2.5*(0.5 - offset)
-	# node biases update
-	for i in range(1,vertice.size()) :
-		if i == vertice.size() - 1 :
-			adj_matrix[-1][-1] = adj_matrix_copy[-1][-1] + 1.5*(vertice[i].offset - 0.5)
-		else :
-			adj_matrix[i][i] = adj_matrix_copy[i][i] + 1.5*(vertice[i].offset - 0.5)
+		for l in graph_var["adj_list"][i]:
+			adj_matrix[i][l] = graph_var["weight"][i][0]
+	graph_var["matrix"] = adj_matrix.duplicate(true)
+	return graph_var

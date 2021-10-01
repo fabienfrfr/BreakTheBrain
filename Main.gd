@@ -1,141 +1,89 @@
 extends Node
 
+## module
+const GraphGen = preload("node/GraphGen.gd")
 const NeuralNet = preload("node/NeuralNet.gd")
 
-export (PackedScene) var FixedNeuron
-export (PackedScene) var InputX
-export (PackedScene) var MovableNeuron
-
-const nb_i = 1
-const nb_out = 1
-var nb_fix = 2
-var nb_mov = 2
-
-var movable_vertices = []
-var vertices = []
-
-var x_input_values = Array([])
-var target_values = Array([])
-var predicted_values = Array([])
-const delta_x_val = 8.0
-var points_count = 100
-
-const min_x = 40
-const max_x = 720
-const min_y = 560
-const max_y = 500
-
-var score: int
-var try: int = 0
+## variable
+# global
+var screen_size
+# graph variable
+var gg
+var graph_param = {"nb_i": 1, "nb_out": 1, "nb_fix": 1, "nb_mov": 1}
+var graph_var
+var graph_init
+# curve and network variable
+var c_prm = {'nb_pts':200, 'delta_x':8,'input':[]}
+var curve_var = {'target':[], 'predict':[]}
 var nn
+var time = 0
+var error
 
-var n_time
-var w_time
-
+## start party
 func _ready():
-	n_time = 0
-	w_time = $CurveUpdate.wait_time
+	# initialisation
+	graph_param["nb_fix"] = $HUD.gp["nb_fix"]
+	graph_param["nb_mov"] = $HUD.gp["nb_mov"]
+	screen_size = Vector2(800,600) #get_viewport().size
 	randomize()
+	# generate graph of network
+	gg = GraphGen.new()
+	graph_var = gg.construct_random_netgraph(graph_param, screen_size)
+	graph_init = graph_var.duplicate(true) # for reset
+	# game controler and display
+	$GamePlay.game_setting(graph_var)
+	# curve initialization
+	$Predicted._initialization(screen_size, c_prm['nb_pts'])
+	$TargetY._initialization(screen_size, c_prm['nb_pts'])
+	# linear input generator
+	c_prm['input'] = []
+	for n in range(c_prm['nb_pts']) :
+		c_prm['input'] += [c_prm['delta_x']*(float(n)/(c_prm['nb_pts']-1))-c_prm['delta_x']/2]
+	# networks calculation
 	nn =  NeuralNet.new()
-	$GraphGen.init_constructor(nb_i, nb_out, nb_fix, nb_mov)
-	for _i in range(0,nb_mov):
-		movable_vertices += [MovableNeuron.instance()]
-		add_child(movable_vertices[-1])
-		$MovePath/NeuronSpawnLoc.offset = randi()
-		movable_vertices[-1].position = $MovePath/NeuronSpawnLoc.position
-	for i in range($GraphGen.pos_node.size()) :
-		if $GraphGen.type_n[i] == "input" :
-			vertices += [InputX.instance()]
-			add_child(vertices[-1])
-		elif $GraphGen.type_n[i] == "fixed" or $GraphGen.type_n[i] == "output" :
-			vertices += [FixedNeuron.instance()]
-			add_child(vertices[-1])
-		if  $GraphGen.type_n[i] != "movable" :
-			vertices[-1].position.x = $GraphGen.pos_node[i][0]
-			vertices[-1].position.y = $GraphGen.pos_node[i][1]
-	# save matrix
-	$GraphGen.adj_matrix_copy = $GraphGen.adj_matrix.duplicate(true)
-	print(movable_vertices.size())
-	# show curve
-	curve_init()
-
-func _reset_lvl():
-	if try < 3 :
-		print(try)
-		# include 3 tries before reset all :
-		for m in movable_vertices :
-			m.get_node("IN").points[1] = m.init_pos_in
-			m.get_node("OUT").points[1] = m.init_pos_out
-		# forcing update matrix (why doesn't works always?)
-		$GraphGen.adj_matrix = $GraphGen.adj_matrix_copy.duplicate(true)
-		try += 1
-	else :
-		print('haha')
-		try = 0
-		# update difficulty :
-		score = 1 - 1 # next difficulty
-		var noding = $HUD._level_p_gen(nb_fix + nb_mov, score) # change nb_mov&fix
-		# reset all :
-		movable_vertices = []
-		vertices = []
+	curve_var['predict'] = nn.graph2computation(c_prm['input'], graph_var["matrix"])
+	curve_var['target'] = nn.solution_generator(c_prm['input'], graph_param, graph_var)
+	# free memory
+	gg.queue_free()
+	# no success in start
+	error = error_abs()
+	if error < 0.1 :
+		nn.queue_free()
+		# restart
 		_ready()
+	# flip-flop
+	$HUD.ff = 0
 
-func curve_init():
-	# line init
-	$TargetY.clear_points()
-	$PredictedY._initialization(points_count, min_x, max_x, min_y, max_y)
-	for n in range(points_count):
-		$TargetY.add_point(Vector2(min_x+n*(max_x-min_x)/(points_count-1),0))
-	# linear input
-	for n in range(points_count) :
-		x_input_values += [delta_x_val*(float(n)/(points_count-1))-delta_x_val/2]
-	## curve solution
-	target_values = nn.solution_generator(x_input_values, nb_i+nb_fix, $GraphGen.pos_node, $GraphGen.adj_matrix, movable_vertices)
-	for n in range(points_count):
-		$TargetY.points[n].y = min_y + (max_y-min_y)*target_values[n]
-	# update first curve
-	_CurveUpdate()
+## during party
+func _process(delta):
+	# collect new parameter
+	graph_var = $GamePlay.graph_var
+	# update
+	curve_var['predict'] = nn.graph2computation(c_prm['input'], graph_var["matrix"])
+	# plot
+	time += delta
+	$Predicted.update_path_and_point(curve_var['predict'], 0.15, wrapf(time, 0,1))
+	$TargetY.update_path_and_point(curve_var['target'], 0.25, wrapf(time, 0,1))
+	# error calculation
+	error = error_abs()
+	# update text score and check success
+	$HUD.error_event(error)
 
-func _CurveUpdate():
-	# update movable neuron adjacency
-	_check_connection()
-	# update weight-biase
-	$GraphGen._update(vertices)
-	# compute graph prediction and error
-	predicted_values = nn.graph2computation(x_input_values, $GraphGen.adj_matrix)
-	predicted_values = nn.normalization(predicted_values)
-	$PredictedY.update_path_and_point(predicted_values, n_time*w_time)
-	var error = 0
-	for n in range(points_count) :
-		error += abs(target_values[n] - predicted_values[n])
-	error = error/points_count
-	# update text score
-	$HUD/Error_abs.text = str(int(100*(1-error))) + " %"
-	# update time
-	n_time += 1
-	
-func _check_connection():
-	for m in movable_vertices :
-		var dist_in_list = []
-		var dist_out_list = []
-		var idx_in
-		var idx_out
-		var pn
-		for i in range($GraphGen.v_size) :
-			pn = $GraphGen.pos_node[i]
-			if $GraphGen.type_n[i] != "movable" :
-				dist_in_list += [(pn-m.absolut_position_in).length()]
-				dist_out_list += [(pn-m.absolut_position_out).length()]
-			else :
-				dist_in_list += [1000]
-				dist_out_list += [1000]
-		idx_in = dist_in_list.find(dist_in_list.min())
-		idx_out = dist_out_list.find(dist_out_list.min())
-		if dist_in_list.min() < 25 :
-			$GraphGen.adj_matrix[-2][idx_in] = m.Weight_in
-			m.connected_in = true
-			m.get_node("IN").points[1] = -(m.position -  $GraphGen.pos_node[idx_in])*m.cm2pix
-		if dist_out_list.min() < 25 :
-			$GraphGen.adj_matrix[idx_out][-2] = m.Weight_out
-			m.connected_out = true
-			m.get_node("OUT").points[1] = -(m.position -  $GraphGen.pos_node[idx_out])*m.cm2pix
+## error
+func error_abs():
+	error = 0
+	for n in range(c_prm['nb_pts']) :
+		error += abs(curve_var['target'][n] - curve_var['predict'][n])
+	return error/c_prm['nb_pts']
+
+## reset
+func _on_HUD_reset():
+	# less than 3-tries
+	$GamePlay.game_setting(graph_init)
+
+## next lvl
+func _next_lvl():
+	# free memory
+	nn.queue_free()
+	# restart
+	_ready()

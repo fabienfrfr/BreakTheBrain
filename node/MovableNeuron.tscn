@@ -1,12 +1,22 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://node/MovableNeuron.gd" type="Script" id=1]
 [ext_resource path="res://asset/MovableNeuron.png" type="Texture" id=2]
+[ext_resource path="res://asset/orange_circle.png" type="Texture" id=4]
 
 [sub_resource type="CanvasItemMaterial" id=1]
 blend_mode = 1
 
-[sub_resource type="SpriteFrames" id=2]
+[sub_resource type="CanvasItemMaterial" id=2]
+blend_mode = 1
+
+[sub_resource type="ParticlesMaterial" id=3]
+flag_disable_z = true
+orbit_velocity = 0.0
+orbit_velocity_random = 0.0
+scale = 0.5
+
+[sub_resource type="SpriteFrames" id=4]
 animations = [ {
 "frames": [ ExtResource( 2 ) ],
 "loop": true,
@@ -14,36 +24,59 @@ animations = [ {
 "speed": 5.0
 } ]
 
-[sub_resource type="CircleShape2D" id=3]
-radius = 24.0
+[sub_resource type="CircleShape2D" id=5]
+radius = 56.0
 
-[node name="MovableNeuron" type="RigidBody2D" groups=[
+[node name="MovableNeuron" type="KinematicBody2D" groups=[
 "mov_group",
 ]]
-gravity_scale = 0.0
+light_mask = 0
+material = SubResource( 1 )
+collision_layer = 0
+collision_mask = 0
 script = ExtResource( 1 )
 __meta__ = {
 "_edit_group_": true
 }
 
-[node name="IN" type="Line2D" parent="."]
-material = SubResource( 1 )
+[node name="Link_IN" type="Line2D" parent="."]
+material = SubResource( 2 )
 scale = Vector2( 0.25, 0.25 )
 points = PoolVector2Array( 0, 0, -160, -96 )
 width = 40.0
 default_color = Color( 1, 0.4, 0.4, 1 )
+__meta__ = {
+"_edit_group_": true
+}
 
-[node name="OUT" type="Line2D" parent="."]
-material = SubResource( 1 )
+[node name="Cursor" type="Particles2D" parent="Link_IN"]
+position = Vector2( -160, -96 )
+scale = Vector2( 1.5, 1.5 )
+amount = 5
+process_material = SubResource( 3 )
+texture = ExtResource( 4 )
+
+[node name="Link_OUT" type="Line2D" parent="."]
+material = SubResource( 2 )
 scale = Vector2( 0.25, 0.25 )
 points = PoolVector2Array( 0, 0, 160, -96 )
 width = 40.0
 default_color = Color( 0.4, 1, 0.478431, 1 )
+__meta__ = {
+"_edit_group_": true
+}
 
-[node name="AnimatedSprite" type="AnimatedSprite" parent="."]
+[node name="Cursor" type="Particles2D" parent="Link_OUT"]
+position = Vector2( 160, -96 )
+scale = Vector2( 1.5, 1.5 )
+amount = 5
+process_material = SubResource( 3 )
+texture = ExtResource( 4 )
+
+[node name="Sprite" type="AnimatedSprite" parent="."]
 scale = Vector2( 0.15, 0.15 )
-frames = SubResource( 2 )
+frames = SubResource( 4 )
 animation = "neuron"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-shape = SubResource( 3 )
+shape = SubResource( 5 )
