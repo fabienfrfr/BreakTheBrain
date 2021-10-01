@@ -12,5 +12,5 @@ Some design inspired by GDQuest !
 
 ### Ideas of game :
 
-Understand the universal approximation theorem by a puzzle game, for that, move the neurons (Feedforward), change their sizes (bias) and the thickness of the links (weight) so that the output (in red) corresponds to the desired function (in yellow).
+Understand the universal approximation theorem by a puzzle game, for that, move the neurons, change their bias-weight so that the output (in red) corresponds to the desired function (in yellow). Available in itch.io : https://fabienfrfr.itch.io/break-the-brain
 
