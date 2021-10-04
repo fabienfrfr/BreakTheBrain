@@ -25,7 +25,7 @@ func node_generator(gp):
 		graph_var["type"] += ['in']
 		graph_var["adj_list"] += [[]]
 		graph_var["weight"] += [[]]
-		graph_var["biases"] += [randf()-0.5]
+		graph_var["biases"] += [1.0]
 	# fix
 	var grid_fix = []
 	var idx_fix

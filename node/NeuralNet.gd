@@ -1,6 +1,7 @@
 extends Node
 
 var solution_matrix
+var grad_calc = {"s":[], "ds":[]}
 
 # dot product matrix*vector
 func dot_mv(mat,vect):
@@ -77,6 +78,10 @@ func graph2computation(input_x,adj_matrice):
 			s[calc_idx] = ReLU(wproduct)
 		else :
 			s[calc_idx] = Heaviside(wproduct)
+	# save output calculation for gradient
+	grad_calc["s"] = s.duplicate(true)
+	# gradient calculation
+	grad_calc["ds"] = automatic_derivation(s)
 	return normalization(s[-1]) # only fixed output
 
 func normalization(fct) :
@@ -87,6 +92,18 @@ func normalization(fct) :
 	else :
 		normed = fct
 	return normed
+
+func automatic_derivation(s):
+	var ds = []
+	for i in range(s.size()):
+		var ds_i = []
+		for j in range(s[i].size()):
+			if j < s[i].size()-1 :
+				ds_i += [s[i][j+1]-s[i][j]]
+			else :
+				ds_i += [s[i][0]-s[i][j]] # Periodic boundary conditions
+		ds += [ds_i]
+	return ds
 
 func solution_generator(input, param, graph) : #nb_c, position_node, init_adj_matrix, movable_neuron):
 	solution_matrix = graph["matrix"].duplicate(true)

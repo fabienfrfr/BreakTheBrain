@@ -7,7 +7,7 @@ signal next_lvl(scr)
 var time = 60
 var trial = 3
 # lvl parameter
-var gp = {"nb_fix": 1, "nb_mov": 1}
+var gp = {"nb_fix": 1, "nb_mov": 0}
 var score = 0
 var difficulty = 0
 var ff = 0
@@ -46,7 +46,7 @@ func _on_Count_timeout():
 		yield($MessageTimer, "timeout")
 		# restart
 		gp["nb_fix"] = 1
-		gp["nb_mov"] = 1
+		gp["nb_mov"] = 0
 		_on_MessageTimer_timeout()
 		time = 60
 		trial = 3

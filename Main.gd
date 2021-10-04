@@ -9,7 +9,7 @@ const NeuralNet = preload("node/NeuralNet.gd")
 var screen_size
 # graph variable
 var gg
-var graph_param = {"nb_i": 1, "nb_out": 1, "nb_fix": 1, "nb_mov": 1}
+var graph_param = {"nb_i": 1, "nb_out": 1, "nb_fix": 1, "nb_mov": 0}
 var graph_var
 var graph_init
 # curve and network variable
