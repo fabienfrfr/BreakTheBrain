@@ -21,16 +21,23 @@ Break the codes of an artificial neural network! "Break The Brain" is a puzzle g
 ## Algorithme Graph2ComputationNet :
 ### Input :
 * X values
+
 * Weight-Bias Matrix
 
 ### Initialization :
 Output list = { S1 = X, S1 = 1, ..., Sn = 1}
+
 Order vector = [1,...,1]
+
 Connection matrix = ( a_ij = {1 if != 0; 0 else} )
+
 Calculus vector = [ -1, ..., -1]
 
 ### Loop :
 Calculus_vector = Connection_matrix * Order_vector
+
 next_index = find(New_Calculus_vector == 1) # first 
+
 Order_vector[next_index] = 0
+
 Output_list[next_index] = linear_combinaison(Output_list, Weight_biais_matrix, next_index)
